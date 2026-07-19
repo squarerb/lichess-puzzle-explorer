@@ -38,7 +38,7 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <div className="brand">
-          <span className="brand-mark">Tabiya</span>
+          <span className="brand-mark">Squarerb</span>
           <span className="brand-tag">Lichess Puzzle Explorer</span>
         </div>
         <nav className="nav-tabs">
