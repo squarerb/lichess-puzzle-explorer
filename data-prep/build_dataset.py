@@ -38,22 +38,48 @@ MIN_NB_PLAYS = 50            # skip obscure/rarely-played puzzles
 
 
 def download():
-    if os.path.exists(LOCAL_ZST):
-        print(f"Found existing {LOCAL_ZST}, skipping download.")
+    existing_size = os.path.getsize(LOCAL_ZST) if os.path.exists(LOCAL_ZST) else 0
+
+    # Check the remote file size first so we know whether an existing
+    # partial file is actually complete or needs resuming.
+    head = requests.head(DB_URL, allow_redirects=True)
+    remote_size = int(head.headers.get("content-length", 0))
+
+    if existing_size and remote_size and existing_size >= remote_size:
+        print(f"Found complete {LOCAL_ZST} ({existing_size / 1e6:.0f}MB), skipping download.")
         return
-    print(f"Downloading {DB_URL} ...")
-    with requests.get(DB_URL, stream=True) as r:
-        r.raise_for_status()
-        total = int(r.headers.get("content-length", 0))
-        done = 0
-        with open(LOCAL_ZST, "wb") as f:
-            for chunk in r.iter_content(chunk_size=1 << 20):
-                f.write(chunk)
-                done += len(chunk)
-                if total:
-                    pct = done / total * 100
-                    print(f"\r  {done / 1e6:.0f}MB / {total / 1e6:.0f}MB ({pct:.1f}%)", end="")
-        print("\nDownload complete.")
+
+    headers = {}
+    mode = "wb"
+    done = existing_size
+    if existing_size:
+        print(f"Resuming {LOCAL_ZST} from {existing_size / 1e6:.0f}MB...")
+        headers["Range"] = f"bytes={existing_size}-"
+        mode = "ab"
+    else:
+        print(f"Downloading {DB_URL} ...")
+
+    max_retries = 5
+    for attempt in range(1, max_retries + 1):
+        try:
+            with requests.get(DB_URL, stream=True, headers=headers, timeout=30) as r:
+                r.raise_for_status()
+                with open(LOCAL_ZST, mode) as f:
+                    for chunk in r.iter_content(chunk_size=1 << 20):
+                        f.write(chunk)
+                        done += len(chunk)
+                        if remote_size:
+                            pct = done / remote_size * 100
+                            print(f"\r  {done / 1e6:.0f}MB / {remote_size / 1e6:.0f}MB ({pct:.1f}%)", end="")
+            print("\nDownload complete.")
+            return
+        except (requests.exceptions.RequestException, ConnectionError) as e:
+            print(f"\nDownload interrupted ({e}). Retrying ({attempt}/{max_retries})...")
+            existing_size = os.path.getsize(LOCAL_ZST) if os.path.exists(LOCAL_ZST) else 0
+            headers["Range"] = f"bytes={existing_size}-"
+            mode = "ab"
+            done = existing_size
+    raise RuntimeError(f"Download failed after {max_retries} attempts. Run the script again to resume.")
 
 
 def stream_rows():
