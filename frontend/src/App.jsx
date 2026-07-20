@@ -36,9 +36,12 @@ export default function App() {
 
   return (
     <div className="app">
+      <div className="bg-ambient" aria-hidden="true">
+        <div className="bg-blob-3" />
+      </div>
       <header className="app-header">
         <div className="brand">
-          <span className="brand-mark">Squarerb</span>
+          <span className="brand-mark">Tabiya</span>
           <span className="brand-tag">Lichess Puzzle Explorer</span>
         </div>
         <nav className="nav-tabs">
