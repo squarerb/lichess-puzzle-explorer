@@ -3,6 +3,8 @@
 Browse, filter, and solve chess tactics puzzles from the Lichess puzzle
 database.
 
+https://squarerb.github.io/lichess-puzzle-explorer/
+
 ## Structure
 
 ```
