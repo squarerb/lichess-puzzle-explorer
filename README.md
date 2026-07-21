@@ -1,4 +1,4 @@
-# Tabiya — Lichess Puzzle Explorer
+# squarerb — Lichess Puzzle Explorer
 
 **[Live demo →](https://squarerb.github.io/lichess-puzzle-explorer/)**
 
