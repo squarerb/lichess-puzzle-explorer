@@ -1,0 +1,13 @@
+[
+  {
+    "id": "sample04",
+    "fen": "r7/7p/8/8/8/k7/6K1/7R b - - 0 1",
+    "moves": ["h7h6", "h1a1", "a3b4", "a1a8"],
+    "rating": 1450,
+    "popularity": 84,
+    "nbPlays": 5100,
+    "themes": ["skewer", "rookEndgame", "long"],
+    "gameUrl": "https://lichess.org/training",
+    "openingTags": []
+  }
+]
