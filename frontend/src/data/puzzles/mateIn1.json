@@ -1,0 +1,13 @@
+[
+  {
+    "id": "sample01",
+    "fen": "1n4k1/p4ppp/8/8/8/8/8/4R1K1 b - - 0 1",
+    "moves": ["a7a5", "e1e8"],
+    "rating": 900,
+    "popularity": 95,
+    "nbPlays": 12000,
+    "themes": ["mateIn1", "backRankMate", "short"],
+    "gameUrl": "https://lichess.org/training",
+    "openingTags": []
+  }
+]
