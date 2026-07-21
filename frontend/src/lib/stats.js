@@ -2,7 +2,7 @@
 // static site with no backend. Per-browser only — use exportStats() /
 // importStats() to back up or move between devices.
 
-const STORAGE_KEY = 'tabiya:puzzle-stats:v1'
+const STORAGE_KEY = 'squarerb:puzzle-stats:v1'
 
 function defaultStats() {
   return {
@@ -76,7 +76,7 @@ export function exportStats() {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `tabiya-stats-${new Date().toISOString().slice(0, 10)}.json`
+  a.download = `squarerb-stats-${new Date().toISOString().slice(0, 10)}.json`
   a.click()
   URL.revokeObjectURL(url)
 }

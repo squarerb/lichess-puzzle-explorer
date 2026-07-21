@@ -22,7 +22,7 @@ export default function StatsPanel({ stats, setStats }) {
       setStats(updated)
       setImportError('')
     } catch {
-      setImportError('Could not read that file — is it a Tabiya stats export?')
+      setImportError('Could not read that file — is it a squarerb stats export?')
     }
     e.target.value = ''
   }
