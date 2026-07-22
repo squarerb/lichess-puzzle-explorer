@@ -10,9 +10,21 @@ function defaultStats() {
     failed: 0,
     currentStreak: 0,
     bestStreak: 0,
+    rating: 1200,
+    hintsUsed: 0,
+    fastestSolveMs: null,
     byTheme: {}, // theme -> { solved, failed }
-    history: [], // { id, themes, rating, result: 'solved'|'failed', ts }
+    history: [], // { id, themes, rating, result: 'solved'|'failed', ts, timeMs, hintUsed }
   }
+}
+
+// Simplified Elo-style update — same idea Lichess itself uses for puzzle
+// ratings: expected score is a logistic curve based on the rating gap,
+// actual score is 1 (solved) or 0 (failed), K controls how fast it moves.
+export function eloDelta(currentRating, puzzleRating, solved, k = 24) {
+  const expected = 1 / (1 + Math.pow(10, (puzzleRating - currentRating) / 400))
+  const score = solved ? 1 : 0
+  return Math.round(k * (score - expected))
 }
 
 export function loadStats() {
@@ -35,15 +47,29 @@ function saveStats(stats) {
   }
 }
 
-export function recordResult(puzzle, result) {
+export function recordResult(puzzle, result, { hintUsed = false, timeMs = null } = {}) {
   const stats = loadStats()
-  if (result === 'solved') {
+  const solved = result === 'solved'
+
+  if (solved) {
     stats.solved += 1
     stats.currentStreak += 1
     stats.bestStreak = Math.max(stats.bestStreak, stats.currentStreak)
+    if (timeMs != null && (stats.fastestSolveMs == null || timeMs < stats.fastestSolveMs)) {
+      stats.fastestSolveMs = timeMs
+    }
   } else {
     stats.failed += 1
     stats.currentStreak = 0
+  }
+
+  if (hintUsed) {
+    stats.hintsUsed += 1
+  } else {
+    // Hinted solves don't move the rating estimate — you were assisted,
+    // so it wouldn't be an honest signal of your own solving strength.
+    stats.rating += eloDelta(stats.rating, puzzle.rating, solved)
+    stats.rating = Math.min(3000, Math.max(400, stats.rating))
   }
 
   for (const theme of puzzle.themes) {
@@ -57,6 +83,8 @@ export function recordResult(puzzle, result) {
     rating: puzzle.rating,
     result,
     ts: Date.now(),
+    timeMs,
+    hintUsed,
   })
   stats.history = stats.history.slice(0, 200) // cap history length
 

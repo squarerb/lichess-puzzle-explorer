@@ -43,6 +43,10 @@ export default function StatsPanel({ stats, setStats }) {
           <div className="stat-label">Accuracy</div>
         </div>
         <div className="stat-card">
+          <div className="stat-value">{stats.hintsUsed || 0}</div>
+          <div className="stat-label">Hints used</div>
+        </div>
+        <div className="stat-card">
           <div className="stat-value">{stats.currentStreak}</div>
           <div className="stat-label">Current streak</div>
         </div>

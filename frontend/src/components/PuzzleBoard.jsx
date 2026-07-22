@@ -25,6 +25,8 @@ export default function PuzzleBoard({ puzzle, onNext }) {
   const [status, setStatus] = useState('thinking') // thinking | correct | incorrect
   const [orientation, setOrientation] = useState('white')
   const [resultRecorded, setResultRecorded] = useState(false)
+  const [hintSquare, setHintSquare] = useState(null)
+  const [hintUsed, setHintUsed] = useState(false)
 
   useEffect(() => {
     if (!puzzle) return
@@ -35,6 +37,8 @@ export default function PuzzleBoard({ puzzle, onNext }) {
     setMoveIndex(1)
     setStatus('thinking')
     setResultRecorded(false)
+    setHintSquare(null)
+    setHintUsed(false)
     setOrientation(game.turn() === 'w' ? 'white' : 'black')
   }, [puzzle])
 
@@ -49,7 +53,7 @@ export default function PuzzleBoard({ puzzle, onNext }) {
   function finishSolved() {
     setStatus('correct')
     if (!resultRecorded) {
-      recordResult(puzzle, 'solved')
+      recordResult(puzzle, 'solved', { hintUsed })
       setResultRecorded(true)
     }
   }
@@ -57,7 +61,7 @@ export default function PuzzleBoard({ puzzle, onNext }) {
   function finishFailed() {
     setStatus('incorrect')
     if (!resultRecorded) {
-      recordResult(puzzle, 'failed')
+      recordResult(puzzle, 'failed', { hintUsed })
       setResultRecorded(true)
     }
   }
@@ -85,6 +89,7 @@ export default function PuzzleBoard({ puzzle, onNext }) {
     }
 
     setFen(game.fen())
+    setHintSquare(null) // clear any hint highlight once a move is played
     const nextIndex = moveIndex + 1
 
     if (nextIndex >= puzzle.moves.length) {
@@ -102,6 +107,15 @@ export default function PuzzleBoard({ puzzle, onNext }) {
     }, 350)
 
     return true
+  }
+
+  // Reveals only the source square of the solution move — enough to nudge
+  // you toward the right idea without just handing over the answer.
+  function showHint() {
+    if (status !== 'thinking') return
+    const expected = puzzle.moves[moveIndex]
+    setHintSquare(expected.slice(0, 2))
+    setHintUsed(true)
   }
 
   function showSolution() {
@@ -124,6 +138,8 @@ export default function PuzzleBoard({ puzzle, onNext }) {
     setFen(game.fen())
     setMoveIndex(1)
     setStatus('thinking')
+    setHintSquare(null)
+    setHintUsed(false)
   }
 
   if (!puzzle) {
@@ -137,10 +153,14 @@ export default function PuzzleBoard({ puzzle, onNext }) {
 
   const statusText =
     status === 'correct'
-      ? 'Solved — nice tactic.'
+      ? `Solved${hintUsed ? ' (hint used)' : ''} — nice tactic.`
       : status === 'incorrect'
         ? 'Not the move. Try again or see the solution.'
         : 'Find the best move for the side to move.'
+
+  const squareStyles = hintSquare
+    ? { [hintSquare]: { boxShadow: 'inset 0 0 0 4px var(--brass-bright)' } }
+    : undefined
 
   return (
     <div className="solve-layout">
@@ -153,6 +173,7 @@ export default function PuzzleBoard({ puzzle, onNext }) {
           customDarkSquareStyle={{ backgroundColor: '#7a6a52' }}
           customLightSquareStyle={{ backgroundColor: '#ede6d6' }}
           customBoardStyle={{ borderRadius: '6px' }}
+          customSquareStyles={squareStyles}
         />
       </div>
 
@@ -168,6 +189,11 @@ export default function PuzzleBoard({ puzzle, onNext }) {
         </div>
 
         <div className="btn-row">
+          {status === 'thinking' && (
+            <button className="btn btn-secondary" onClick={showHint} type="button" disabled={hintUsed}>
+              {hintUsed ? 'Hint shown' : 'Hint'}
+            </button>
+          )}
           {status === 'incorrect' && (
             <>
               <button className="btn btn-secondary" onClick={retry} type="button">
