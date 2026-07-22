@@ -3,6 +3,7 @@ import FilterPanel from './components/FilterPanel'
 import PuzzleList from './components/PuzzleList'
 import PuzzleBoard from './components/PuzzleBoard'
 import StatsPanel from './components/StatsPanel'
+import BackgroundPieces from './components/BackgroundPieces'
 import { getAllPuzzles, filterPuzzles, pickRandom } from './lib/puzzleData'
 import { loadStats } from './lib/stats'
 import meta from './data/meta.json'
@@ -36,9 +37,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <div className="bg-ambient" aria-hidden="true">
-        <div className="bg-blob-3" />
-      </div>
+      <BackgroundPieces />
       <header className="app-header">
         <div className="brand">
           <span className="brand-mark">squarerb</span>

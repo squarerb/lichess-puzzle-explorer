@@ -38,7 +38,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ---------- Ambient animated background ---------- */
+/* ---------- Ambient floating chess pieces ---------- */
 
 .bg-ambient {
   position: fixed;
@@ -48,86 +48,29 @@ body {
   pointer-events: none;
 }
 
-.bg-ambient::before,
-.bg-ambient::after {
-  content: '';
+.bg-piece {
   position: absolute;
-  width: 80vw;
-  height: 80vw;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.55;
-  mix-blend-mode: screen;
+  color: var(--brass);
+  opacity: 0.14;
+  line-height: 1;
+  will-change: transform;
+  animation-name: float-piece;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
 }
 
-.bg-ambient::before {
-  top: -25%;
-  left: -12%;
-  background: radial-gradient(circle, var(--brass-bright) 0%, var(--felt) 45%, transparent 70%);
-  animation: drift-a 30s ease-in-out infinite alternate;
-}
-
-.bg-ambient::after {
-  bottom: -30%;
-  right: -18%;
-  background: radial-gradient(circle, var(--ember-bright) 0%, var(--felt-bright) 45%, transparent 70%);
-  animation: drift-b 36s ease-in-out infinite alternate;
-}
-
-.bg-blob-3 {
-  position: absolute;
-  top: 30%;
-  left: 35%;
-  width: 60vw;
-  height: 60vw;
-  border-radius: 50%;
-  filter: blur(70px);
-  opacity: 0.4;
-  mix-blend-mode: screen;
-  background: radial-gradient(circle, var(--felt-bright) 0%, var(--brass) 50%, transparent 70%);
-  animation: drift-c 44s ease-in-out infinite alternate;
-}
-
-@keyframes drift-a {
+@keyframes float-piece {
   0% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(8vw, 6vh) scale(1.15);
+    transform: translateY(0) rotate(0deg);
   }
   100% {
-    transform: translate(-4vw, 10vh) scale(0.95);
-  }
-}
-
-@keyframes drift-b {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(-6vw, -8vh) scale(1.1);
-  }
-  100% {
-    transform: translate(5vw, -4vh) scale(0.9);
-  }
-}
-
-@keyframes drift-c {
-  0% {
-    transform: translate(0, 0) scale(1) rotate(0deg);
-  }
-  50% {
-    transform: translate(-10vw, 8vh) scale(1.2) rotate(15deg);
-  }
-  100% {
-    transform: translate(8vw, -6vh) scale(0.85) rotate(-10deg);
+    transform: translateY(-26px) rotate(6deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bg-ambient::before,
-  .bg-ambient::after,
-  .bg-blob-3 {
+  .bg-piece {
     animation: none;
   }
 }
