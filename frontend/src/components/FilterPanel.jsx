@@ -1,6 +1,44 @@
+import { useEffect, useRef, useState } from 'react'
 import meta from '../data/meta.json'
 
+const DEBOUNCE_MS = 120
+
 export default function FilterPanel({ filters, setFilters, resultCount }) {
+  const [dbMin, dbMax] = meta.ratingRange
+  const debounceRef = useRef(null)
+
+  // Local, instantly-updating slider values — dragging updates these
+  // immediately so the handle/number feel responsive. The actual filter
+  // state (which triggers re-filtering + re-rendering the puzzle grid)
+  // only updates after a short pause, so a full drag doesn't re-filter
+  // thousands of puzzles on every pixel of movement.
+  const [localMin, setLocalMin] = useState(filters.minRating)
+  const [localMax, setLocalMax] = useState(filters.maxRating)
+
+  useEffect(() => {
+    setLocalMin(filters.minRating)
+    setLocalMax(filters.maxRating)
+  }, [filters.minRating, filters.maxRating])
+
+  function commitRange(min, max) {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setFilters((f) => ({ ...f, minRating: min, maxRating: max }))
+    }, DEBOUNCE_MS)
+  }
+
+  function onMinChange(e) {
+    const val = Math.min(Number(e.target.value), localMax)
+    setLocalMin(val)
+    commitRange(val, localMax)
+  }
+
+  function onMaxChange(e) {
+    const val = Math.max(Number(e.target.value), localMin)
+    setLocalMax(val)
+    commitRange(localMin, val)
+  }
+
   const toggleTheme = (theme) => {
     setFilters((f) => ({
       ...f,
@@ -9,8 +47,6 @@ export default function FilterPanel({ filters, setFilters, resultCount }) {
         : [...f.themes, theme],
     }))
   }
-
-  const [dbMin, dbMax] = meta.ratingRange
 
   return (
     <aside className="filter-panel">
@@ -27,26 +63,10 @@ export default function FilterPanel({ filters, setFilters, resultCount }) {
       <div>
         <div className="filter-section-label">Rating range</div>
         <div className="rating-range-display">
-          {filters.minRating} – {filters.maxRating}
+          {localMin} – {localMax}
         </div>
-        <input
-          type="range"
-          min={dbMin}
-          max={dbMax}
-          value={filters.minRating}
-          onChange={(e) =>
-            setFilters((f) => ({ ...f, minRating: Math.min(Number(e.target.value), f.maxRating) }))
-          }
-        />
-        <input
-          type="range"
-          min={dbMin}
-          max={dbMax}
-          value={filters.maxRating}
-          onChange={(e) =>
-            setFilters((f) => ({ ...f, maxRating: Math.max(Number(e.target.value), f.minRating) }))
-          }
-        />
+        <input type="range" min={dbMin} max={dbMax} value={localMin} onChange={onMinChange} />
+        <input type="range" min={dbMin} max={dbMax} value={localMax} onChange={onMaxChange} />
       </div>
 
       <div>
