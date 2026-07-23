@@ -11,14 +11,14 @@ function generatePieces(count) {
       top: Math.random() * 100,
       left: Math.random() * 100,
       size: 32 + Math.random() * 64, // px
-      duration: 6 + Math.random() * 8, // seconds
-      delay: Math.random() * -10, // negative = start mid-animation, staggers them
+      duration: 3 + Math.random() * 4, // seconds
+      delay: Math.random() * -7, // negative = start mid-animation, staggers them
     })
   }
   return pieces
 }
 
-export default function BackgroundPieces({ count = 16 }) {
+export default function BackgroundPieces({ count = 28 }) {
   const pieces = useMemo(() => generatePieces(count), [count])
 
   return (
