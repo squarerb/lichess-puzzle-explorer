@@ -404,7 +404,63 @@ input[type='text'] {
   flex-wrap: wrap;
 }
 
-/* ---------- Stats ---------- */
+/* ---------- Auth panel ---------- */
+
+.auth-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.auth-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.auth-row input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--ivory);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  flex: 1;
+  min-width: 140px;
+}
+
+.auth-email {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--ivory-dim);
+  flex: 1;
+}
+
+.auth-link {
+  background: none;
+  border: none;
+  color: var(--brass-bright);
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.auth-status {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--felt-bright);
+}
+
+.auth-note {
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-size: 0.78rem;
+  color: var(--ivory-dim);
+}
 
 .stats-grid {
   display: grid;

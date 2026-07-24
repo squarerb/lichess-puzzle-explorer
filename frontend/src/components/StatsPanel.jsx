@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { exportStats, importStats, resetStats } from '../lib/stats'
+import AuthPanel from './AuthPanel'
 
 export default function StatsPanel({ stats, setStats }) {
   const fileInputRef = useRef(null)
@@ -29,6 +30,8 @@ export default function StatsPanel({ stats, setStats }) {
 
   return (
     <div>
+      <AuthPanel onStatsSynced={setStats} />
+
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-value">{stats.solved}</div>

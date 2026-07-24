@@ -1,8 +1,44 @@
-// Personal solve stats, persisted to localStorage since this is a fully
-// static site with no backend. Per-browser only — use exportStats() /
-// importStats() to back up or move between devices.
+// Personal solve stats, persisted to localStorage by default (per-browser).
+// If signed in via Supabase, stats also sync to a hosted database so they
+// carry across devices — see setSyncUser() / pullCloudStats() below.
 
-const STORAGE_KEY = 'squarerb:puzzle-stats:v1'
+import { supabase } from './supabaseClient'
+
+export const STORAGE_KEY = 'squarerb:puzzle-stats:v1'
+
+let syncUserId = null
+let pushTimer = null
+
+// Call this after sign-in/sign-out to start or stop cloud syncing.
+export function setSyncUser(userId) {
+  syncUserId = userId
+}
+
+export async function pushCloudStats(userId, stats) {
+  const { error } = await supabase
+    .from('user_stats')
+    .upsert({ user_id: userId, data: stats, updated_at: new Date().toISOString() })
+  if (error) throw error
+}
+
+export async function pullCloudStats(userId) {
+  const { data, error } = await supabase.from('user_stats').select('data').eq('user_id', userId).maybeSingle()
+  if (error) throw error
+  return data ? data.data : null
+}
+
+// Debounced so rapid local saves (e.g. solving several puzzles quickly)
+// don't fire a network request on every single one.
+function scheduleCloudPush(stats) {
+  if (!syncUserId) return
+  if (pushTimer) clearTimeout(pushTimer)
+  pushTimer = setTimeout(() => {
+    pushCloudStats(syncUserId, stats).catch(() => {
+      // Offline or a transient error — the local copy is still safe and
+      // correct, the next save will just try pushing again.
+    })
+  }, 800)
+}
 
 function defaultStats() {
   return {
@@ -45,6 +81,7 @@ function saveStats(stats) {
     // localStorage unavailable (private browsing, quota, etc.) — fail silently,
     // the session still works, it just won't persist.
   }
+  scheduleCloudPush(stats)
 }
 
 export function recordResult(puzzle, result, { hintUsed = false, timeMs = null } = {}) {
