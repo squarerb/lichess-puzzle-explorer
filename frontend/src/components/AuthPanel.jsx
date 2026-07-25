@@ -64,18 +64,23 @@ export default function AuthPanel({ session, onStatsSynced }) {
     }
     setLoading(true)
     setStatus('')
-    const authFn = mode === 'signin' ? supabase.auth.signInWithPassword : supabase.auth.signUp
-    const { data, error } = await authFn({ email, password, options: { captchaToken } })
-    setLoading(false)
-    // Turnstile tokens are single-use — always reset after an attempt, pass or fail.
-    setCaptchaToken(null)
-    setTurnstileResetKey((k) => k + 1)
-    if (error) {
-      setStatus(error.message)
-      return
-    }
-    if (mode === 'signup' && !data.session) {
-      setStatus('Check your email to confirm your account, then sign in.')
+    try {
+      const authFn = mode === 'signin' ? supabase.auth.signInWithPassword : supabase.auth.signUp
+      const { data, error } = await authFn({ email, password, options: { captchaToken } })
+      if (error) {
+        setStatus(error.message)
+        return
+      }
+      if (mode === 'signup' && !data.session) {
+        setStatus('Check your email to confirm your account, then sign in.')
+      }
+    } catch (err) {
+      setStatus(`Network error: ${err.message || 'could not reach the server'}. Please try again.`)
+    } finally {
+      setLoading(false)
+      // Turnstile tokens are single-use — always reset after an attempt, pass or fail.
+      setCaptchaToken(null)
+      setTurnstileResetKey((k) => k + 1)
     }
   }
 
@@ -88,8 +93,11 @@ export default function AuthPanel({ session, onStatsSynced }) {
   if (session) {
     return (
       <div className="auth-panel">
-        <div className="auth-row">
-          <span className="auth-email">Signed in as {session.user.email}</span>
+        <div className="auth-signed-in-row">
+          <div>
+            <div className="auth-signed-in-label">Signed in</div>
+            <div className="auth-email">{session.user.email}</div>
+          </div>
           <button className="btn btn-secondary" onClick={handleSignOut} type="button">
             Sign out
           </button>
@@ -101,43 +109,56 @@ export default function AuthPanel({ session, onStatsSynced }) {
 
   return (
     <div className="auth-panel">
-      <form className="auth-row" onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
+      <div className="auth-title">{mode === 'signin' ? 'Sign in' : 'Create an account'}</div>
+      <p className="auth-note">
+        Sync your solve history and stats across devices. Without an account, your progress stays
+        on this device only.
+      </p>
+
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <label className="auth-field">
+          <span className="auth-field-label">Email</span>
+          <input
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </label>
+
+        <label className="auth-field">
+          <span className="auth-field-label">Password</span>
+          <input
+            type="password"
+            placeholder="At least 6 characters"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+          />
+        </label>
+
+        <Turnstile
+          onVerify={setCaptchaToken}
+          onExpire={() => setCaptchaToken(null)}
+          resetKey={turnstileResetKey}
         />
-        <input
-          type="password"
-          placeholder="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={6}
-        />
-        <button className="btn" type="submit" disabled={loading || !captchaToken}>
+
+        <button className="btn auth-submit" type="submit" disabled={loading || !captchaToken}>
           {loading ? '…' : mode === 'signin' ? 'Sign in' : 'Sign up'}
         </button>
+
+        {status && <div className="auth-status">{status}</div>}
+
         <button
           className="auth-link"
           type="button"
           onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
         >
-          {mode === 'signin' ? 'Need an account?' : 'Have an account? Sign in'}
+          {mode === 'signin' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
         </button>
       </form>
-      <Turnstile
-        onVerify={setCaptchaToken}
-        onExpire={() => setCaptchaToken(null)}
-        resetKey={turnstileResetKey}
-      />
-      {status && <div className="auth-status">{status}</div>}
-      <p className="auth-note">
-        Sign in to sync your solve history and stats across devices. Without an account, your
-        progress stays on this device only.
-      </p>
     </div>
   )
 }

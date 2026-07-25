@@ -32,8 +32,6 @@ export default function StatsPanel({ stats, setStats, session }) {
   return (
     <div className="stats-layout">
       <div className="stats-main">
-        <AuthPanel session={session} onStatsSynced={setStats} />
-
         <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-value">{stats.solved}</div>
@@ -118,6 +116,7 @@ export default function StatsPanel({ stats, setStats, session }) {
       </div>
 
       <aside className="stats-sidebar">
+        <AuthPanel session={session} onStatsSynced={setStats} />
         <GlobalStats />
       </aside>
     </div>

@@ -40,6 +40,20 @@ function scheduleCloudPush(stats) {
   }, 800)
 }
 
+// Records a single solve/fail against the tamper-resistant server-side
+// counters (see the `record_solve` Postgres function). This is what the
+// community totals are actually computed from — separate from the flexible
+// jsonb blob below, which the client could otherwise set to anything.
+async function recordSolveOnServer(solved) {
+  if (!syncUserId) return
+  try {
+    await supabase.rpc('record_solve', { p_solved: solved })
+  } catch {
+    // Offline or a transient error — this only affects the public
+    // community totals, not the player's own local/synced stats.
+  }
+}
+
 function defaultStats() {
   return {
     solved: 0,
@@ -126,6 +140,7 @@ export function recordResult(puzzle, result, { hintUsed = false, timeMs = null }
   stats.history = stats.history.slice(0, 200) // cap history length
 
   saveStats(stats)
+  recordSolveOnServer(solved)
   return stats
 }
 
