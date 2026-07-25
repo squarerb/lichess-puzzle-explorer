@@ -65,8 +65,10 @@ export default function AuthPanel({ session, onStatsSynced }) {
     setLoading(true)
     setStatus('')
     try {
-      const authFn = mode === 'signin' ? supabase.auth.signInWithPassword : supabase.auth.signUp
-      const { data, error } = await authFn({ email, password, options: { captchaToken } })
+      const { data, error } =
+        mode === 'signin'
+          ? await supabase.auth.signInWithPassword({ email, password, options: { captchaToken } })
+          : await supabase.auth.signUp({ email, password, options: { captchaToken } })
       if (error) {
         setStatus(error.message)
         return
