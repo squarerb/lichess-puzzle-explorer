@@ -2,6 +2,18 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Chess } from 'chess.js'
 import { Chessboard } from 'react-chessboard'
 import { recordResult } from '../lib/stats'
+import { getAllPuzzles } from '../lib/puzzleData'
+import { themeDescription } from '../lib/themeGlossary'
+
+function sampleWithoutReplacement(arr, n) {
+  const pool = [...arr]
+  const picked = []
+  while (pool.length > 0 && picked.length < n) {
+    const i = Math.floor(Math.random() * pool.length)
+    picked.push(pool.splice(i, 1)[0])
+  }
+  return picked
+}
 
 function uciToMoveObj(uci) {
   return {
@@ -18,7 +30,7 @@ function moveToUci(move) {
 // Lichess puzzle convention: `fen` is the position BEFORE moves[0].
 // moves[0] is auto-played as the "setup" move, then the player must find
 // moves[1], the opponent auto-replies with moves[2], and so on.
-export default function PuzzleBoard({ puzzle, onNext }) {
+export default function PuzzleBoard({ puzzle, onNext, onSelectPuzzle }) {
   const gameRef = useRef(null)
   const [fen, setFen] = useState('')
   const [moveIndex, setMoveIndex] = useState(1)
@@ -28,6 +40,7 @@ export default function PuzzleBoard({ puzzle, onNext }) {
   const [hintSquare, setHintSquare] = useState(null)
   const [hintShownThisMove, setHintShownThisMove] = useState(false)
   const [hintUsedThisPuzzle, setHintUsedThisPuzzle] = useState(false)
+  const [moveHistory, setMoveHistory] = useState([])
 
   useEffect(() => {
     if (!puzzle) return
@@ -41,6 +54,7 @@ export default function PuzzleBoard({ puzzle, onNext }) {
     setHintSquare(null)
     setHintShownThisMove(false)
     setHintUsedThisPuzzle(false)
+    setMoveHistory(game.history())
     setOrientation(game.turn() === 'w' ? 'white' : 'black')
   }, [puzzle])
 
@@ -51,6 +65,13 @@ export default function PuzzleBoard({ puzzle, onNext }) {
   }, [puzzle])
 
   const playerMovesSoFar = Math.floor(moveIndex / 2)
+
+  const similarPuzzles = useMemo(() => {
+    if (!puzzle) return []
+    const topTheme = puzzle.themes[0]
+    const candidates = getAllPuzzles().filter((p) => p.id !== puzzle.id && p.themes.includes(topTheme))
+    return sampleWithoutReplacement(candidates, 4)
+  }, [puzzle])
 
   function finishSolved() {
     setStatus('correct')
@@ -91,6 +112,7 @@ export default function PuzzleBoard({ puzzle, onNext }) {
     }
 
     setFen(game.fen())
+    setMoveHistory(game.history())
     setHintSquare(null) // clear any hint highlight once a move is played
     setHintShownThisMove(false) // and re-enable the hint button for the next move in this puzzle
     const nextIndex = moveIndex + 1
@@ -106,6 +128,7 @@ export default function PuzzleBoard({ puzzle, onNext }) {
       const reply = puzzle.moves[nextIndex]
       game.move(uciToMoveObj(reply))
       setFen(game.fen())
+      setMoveHistory(game.history())
       setMoveIndex(nextIndex + 1)
     }, 350)
 
@@ -130,6 +153,7 @@ export default function PuzzleBoard({ puzzle, onNext }) {
     }
     gameRef.current = game
     setFen(game.fen())
+    setMoveHistory(game.history())
     setMoveIndex(puzzle.moves.length)
     finishFailed()
   }
@@ -140,6 +164,7 @@ export default function PuzzleBoard({ puzzle, onNext }) {
     game.move(uciToMoveObj(puzzle.moves[0]))
     gameRef.current = game
     setFen(game.fen())
+    setMoveHistory(game.history())
     setMoveIndex(1)
     setStatus('thinking')
     setHintSquare(null)
@@ -190,7 +215,14 @@ export default function PuzzleBoard({ puzzle, onNext }) {
           <span>
             move {playerMovesSoFar} / {totalPlayerMoves}
           </span>
-          <span>{puzzle.themes.join(', ')}</span>
+        </div>
+
+        <div className="theme-tag-list">
+          {puzzle.themes.map((t) => (
+            <span key={t} className="theme-tag" title={themeDescription(t)}>
+              {t}
+            </span>
+          ))}
         </div>
 
         <div className="btn-row">
@@ -212,6 +244,72 @@ export default function PuzzleBoard({ puzzle, onNext }) {
           <button className="btn" onClick={onNext} type="button">
             Next puzzle
           </button>
+        </div>
+
+        <div className="info-grid">
+          <div className="side-card">
+            <div className="filter-section-label">Moves played</div>
+            {moveHistory.length === 0 ? (
+              <div className="moves-empty">—</div>
+            ) : (
+              <ol className="moves-list">
+                {moveHistory.map((san, i) => (
+                  <li key={i}>
+                    {i % 2 === 0 && <span className="move-number">{Math.floor(i / 2) + 1}.</span>}
+                    <span className="move-san">{san}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+
+          <div className="side-card">
+            <div className="filter-section-label">About this puzzle</div>
+            <div className="puzzle-info-grid">
+              <span>Rating</span>
+              <span>{puzzle.rating}</span>
+              <span>Popularity</span>
+              <span>{puzzle.popularity}%</span>
+              <span>Times played</span>
+              <span>{puzzle.nbPlays.toLocaleString()}</span>
+            </div>
+            {puzzle.gameUrl && (
+              <a className="source-game-link" href={puzzle.gameUrl} target="_blank" rel="noreferrer">
+                View original game on Lichess ↗
+              </a>
+            )}
+          </div>
+
+          <div className="side-card">
+            <div className="filter-section-label">Themes explained</div>
+            <dl className="theme-glossary-list">
+              {puzzle.themes.map((t) => (
+                <div key={t} className="theme-glossary-entry">
+                  <dt>{t}</dt>
+                  <dd>{themeDescription(t)}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          {similarPuzzles.length > 0 && (
+            <div className="side-card">
+              <div className="filter-section-label">Similar puzzles ({puzzle.themes[0]})</div>
+              <div className="similar-puzzle-list">
+                {similarPuzzles.map((p) => (
+                  <button
+                    key={p.id}
+                    className="similar-puzzle-item"
+                    onClick={() => onSelectPuzzle?.(p)}
+                    type="button"
+                  >
+                    <span className="similar-puzzle-rating">{p.rating}</span>
+                    <span className="similar-puzzle-themes">{p.themes.slice(0, 3).join(', ')}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

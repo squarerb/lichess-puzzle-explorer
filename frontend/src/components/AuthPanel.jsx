@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { loadStats, pullCloudStats, pushCloudStats, setSyncUser, STORAGE_KEY } from '../lib/stats'
+import Turnstile from './Turnstile'
 
 export default function AuthPanel({ session, onStatsSynced }) {
   const [mode, setMode] = useState('signin') // signin | signup
@@ -8,6 +9,8 @@ export default function AuthPanel({ session, onStatsSynced }) {
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState('')
   const [loading, setLoading] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState(null)
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0)
   const syncedForUserId = useRef(null)
 
   useEffect(() => {
@@ -55,11 +58,18 @@ export default function AuthPanel({ session, onStatsSynced }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (!captchaToken) {
+      setStatus('Please complete the verification check below.')
+      return
+    }
     setLoading(true)
     setStatus('')
     const authFn = mode === 'signin' ? supabase.auth.signInWithPassword : supabase.auth.signUp
-    const { data, error } = await authFn({ email, password })
+    const { data, error } = await authFn({ email, password, options: { captchaToken } })
     setLoading(false)
+    // Turnstile tokens are single-use — always reset after an attempt, pass or fail.
+    setCaptchaToken(null)
+    setTurnstileResetKey((k) => k + 1)
     if (error) {
       setStatus(error.message)
       return
@@ -107,7 +117,7 @@ export default function AuthPanel({ session, onStatsSynced }) {
           required
           minLength={6}
         />
-        <button className="btn" type="submit" disabled={loading}>
+        <button className="btn" type="submit" disabled={loading || !captchaToken}>
           {loading ? '…' : mode === 'signin' ? 'Sign in' : 'Sign up'}
         </button>
         <button
@@ -118,6 +128,11 @@ export default function AuthPanel({ session, onStatsSynced }) {
           {mode === 'signin' ? 'Need an account?' : 'Have an account? Sign in'}
         </button>
       </form>
+      <Turnstile
+        onVerify={setCaptchaToken}
+        onExpire={() => setCaptchaToken(null)}
+        resetKey={turnstileResetKey}
+      />
       {status && <div className="auth-status">{status}</div>}
       <p className="auth-note">
         Sign in to sync your solve history and stats across devices. Without an account, your

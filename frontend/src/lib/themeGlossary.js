@@ -1,0 +1,72 @@
+// Short, plain-English explanations of Lichess puzzle theme tags, for
+// people who don't already know the jargon. Falls back to a humanized
+// version of the raw tag name for anything not listed here.
+
+export const THEME_GLOSSARY = {
+  advantage: 'A move that wins a significant, though not immediately decisive, material or positional edge.',
+  advancedPawn: 'A pawn pushed far up the board, close enough to promotion to be dangerous.',
+  anastasiaMate: 'A knight and rook trap the king against the side of the board for checkmate.',
+  arabianMate: 'A knight and rook corner the king for checkmate, with the rook cutting off an entire rank or file.',
+  attackingF2F7: "An attack aimed at the f2 or f7 square — a weak point early on since it's defended only by the king.",
+  attraction: 'A sacrifice that lures an enemy piece (often the king) onto a square where it can be exploited.',
+  backRankMate: "Checkmate on the back rank because the king has no escape — usually boxed in by its own pawns.",
+  balestraMate: 'A checkmate pattern combining a queen and a piece controlling the king\'s escape squares.',
+  bishopEndgame: 'An endgame where bishops are the only (or main) minor pieces left, and are decisive.',
+  blindSwineMate: 'Two rooks (or a rook and queen) working together on the 7th/2nd rank deliver checkmate.',
+  bodenMate: 'Two bishops on crossing diagonals deliver checkmate through a king with no flight squares.',
+  capturingDefender: 'Capturing the piece that was defending another target, setting up a follow-up win.',
+  castling: 'The puzzle solution involves castling.',
+  clearance: 'A move that clears a square or line out of the way so another piece can use it.',
+  crushing: 'A move that wins overwhelming material or a completely winning position.',
+  defensiveMove: 'The only (or best) move that avoids losing material or the game.',
+  deflection: 'A move that forces an enemy piece away from a square or duty it needs to guard.',
+  discoveredAttack: 'Moving one piece out of the way reveals an attack from another piece behind it.',
+  doubleBishopMate: 'Both bishops, on open diagonals, combine to deliver checkmate.',
+  doubleCheck: 'A single move that puts the enemy king in check from two pieces at once — it must move.',
+  dovetailMate: "A queen delivers mate next to the king, whose only two escape squares are blocked by its own pieces.",
+  enPassant: 'The puzzle solution involves an en passant pawn capture.',
+  endgame: 'A puzzle from the endgame phase, with few pieces left on the board.',
+  epauletteMate: "A queen delivers mate to a king that's boxed in by its own two rooks, like epaulettes on shoulders.",
+  equality: 'A move that rescues a losing or worse position back to roughly equal.',
+  exposedKing: "A king with few pawns or pieces shielding it, vulnerable to a direct attack.",
+  fork: 'One piece attacks two (or more) enemy pieces at the same time.',
+  hangingPiece: 'A piece that is undefended and can simply be captured for free.',
+  hookMate: 'A rook, knight, and a pawn combine to trap and checkmate the king.',
+  kingsideAttack: "An attack directed at the enemy king's position on the kingside (g/h files).",
+  long: 'A longer puzzle — three or more moves to find the full solution.',
+  master: 'A puzzle drawn from a game played by a titled/master-level player.',
+  masterVsMaster: 'A puzzle drawn from a game between two titled/master-level players.',
+  mate: 'The solution ends in checkmate.',
+  mateIn1: 'Checkmate in one move.',
+  mateIn2: 'Checkmate in two moves.',
+  mateIn3: 'Checkmate in three moves.',
+  mateIn4: 'Checkmate in four or more moves.',
+  mateIn5: 'Checkmate in five or more moves.',
+  middlegame: 'A puzzle from the middlegame phase, after development but before the endgame.',
+  oneMove: 'A one-move puzzle — spot the single best move.',
+  opening: 'A puzzle taken from the opening phase of a game.',
+  pawnEndgame: 'An endgame where only pawns (and kings) remain — precise calculation matters a lot here.',
+  pin: 'A piece is pinned — it can\'t move without exposing a more valuable piece (often the king) behind it.',
+  promotion: 'The solution involves promoting a pawn.',
+  queenEndgame: 'An endgame where queens are the deciding pieces.',
+  queenRookEndgame: 'An endgame featuring both queens and rooks.',
+  quietMove: 'A non-forcing, easy-to-miss move (no check or capture) that quietly sets up something decisive.',
+  rookEndgame: 'An endgame where rooks are the deciding pieces — the most common type of endgame.',
+  sacrifice: 'The solution involves giving up material on purpose to gain a bigger advantage.',
+  short: 'A short puzzle — usually just one or two moves.',
+  skewer: "Like a pin in reverse: a valuable piece is attacked and forced to move, exposing a less valuable piece behind it.",
+  smotheredMate: "A knight delivers checkmate to a king that's completely walled in by its own pieces.",
+  superGM: 'A puzzle drawn from a game played by a top-level grandmaster.',
+  trappedPiece: "A piece that can't escape capture no matter where it moves.",
+  underPromotion: 'Promoting a pawn to a knight, bishop, or rook instead of a queen — usually for a specific tactical reason.',
+  veryLong: 'A very long puzzle — four or more moves, often with multiple key ideas.',
+  xRayAttack: 'An attack that passes "through" one piece to threaten another behind it along the same line.',
+  zugzwang: 'A position where any move a side makes worsens its position — they\'d be better off passing, if that were legal.',
+}
+
+export function themeDescription(theme) {
+  if (THEME_GLOSSARY[theme]) return THEME_GLOSSARY[theme]
+  // Fallback: humanize the camelCase tag itself so it's still readable
+  const spaced = theme.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()
+  return `A "${spaced}" pattern.`
+}

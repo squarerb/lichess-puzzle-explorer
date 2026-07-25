@@ -88,7 +88,7 @@ export default function App() {
 
         {tab === 'Solve' && (
           <div style={{ gridColumn: '1 / -1' }}>
-            <PuzzleBoard puzzle={activePuzzle} onNext={nextPuzzle} />
+            <PuzzleBoard puzzle={activePuzzle} onNext={nextPuzzle} onSelectPuzzle={openPuzzle} />
           </div>
         )}
 
