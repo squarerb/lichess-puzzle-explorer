@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import FilterPanel from './components/FilterPanel'
 import PuzzleList from './components/PuzzleList'
 import PuzzleBoard from './components/PuzzleBoard'
 import StatsPanel from './components/StatsPanel'
 import BackgroundPieces from './components/BackgroundPieces'
 import AuthStatus from './components/AuthStatus'
+import AuthPanel from './components/AuthPanel'
+import Modal from './components/Modal'
 import { getAllPuzzles, filterPuzzles, pickRandom } from './lib/puzzleData'
 import { loadStats } from './lib/stats'
 import { useAuthSession } from './lib/useAuthSession'
@@ -25,6 +27,12 @@ export default function App() {
   const [stats, setStats] = useState(loadStats)
   const filtered = useMemo(() => filterPuzzles(allPuzzles, filters), [allPuzzles, filters])
   const { session } = useAuthSession()
+  const [signInOpen, setSignInOpen] = useState(false)
+
+  // Close the sign-in popup automatically once sign-in actually succeeds.
+  useEffect(() => {
+    if (session) setSignInOpen(false)
+  }, [session])
 
   function openPuzzle(p) {
     setActivePuzzle(p)
@@ -62,9 +70,13 @@ export default function App() {
               </button>
             ))}
           </nav>
-          <AuthStatus session={session} onSignInClick={() => setTab('Stats')} />
+          <AuthStatus session={session} onSignInClick={() => setSignInOpen(true)} />
         </div>
       </header>
+
+      <Modal open={signInOpen} onClose={() => setSignInOpen(false)} title="Sign in">
+        <AuthPanel session={session} onStatsSynced={setStats} />
+      </Modal>
 
       <div className="app-body">
         {tab === 'Browse' && (
