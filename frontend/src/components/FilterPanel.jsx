@@ -3,6 +3,16 @@ import meta from '../data/meta.json'
 
 const DEBOUNCE_MS = 120
 
+// Plain-language difficulty bands for people who don't think in Lichess
+// puzzle rating numbers. Ranges are approximate but line up roughly with
+// how Lichess itself buckets puzzle difficulty.
+const DIFFICULTY_PRESETS = [
+  { label: 'Beginner', min: 400, max: 1200 },
+  { label: 'Medium', min: 1200, max: 1800 },
+  { label: 'Hard', min: 1800, max: 2400 },
+  { label: 'Expert', min: 2400, max: 3200 },
+]
+
 export default function FilterPanel({ filters, setFilters, resultCount }) {
   const [dbMin, dbMax] = meta.ratingRange
   const debounceRef = useRef(null)
@@ -39,6 +49,15 @@ export default function FilterPanel({ filters, setFilters, resultCount }) {
     commitRange(localMin, val)
   }
 
+  function applyPreset(preset) {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    setLocalMin(preset.min)
+    setLocalMax(preset.max)
+    setFilters((f) => ({ ...f, minRating: preset.min, maxRating: preset.max }))
+  }
+
+  const activePreset = DIFFICULTY_PRESETS.find((p) => p.min === localMin && p.max === localMax)
+
   const toggleTheme = (theme) => {
     setFilters((f) => ({
       ...f,
@@ -58,6 +77,22 @@ export default function FilterPanel({ filters, setFilters, resultCount }) {
           value={filters.search}
           onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
         />
+      </div>
+
+      <div>
+        <div className="filter-section-label">Difficulty</div>
+        <div className="difficulty-preset-list">
+          {DIFFICULTY_PRESETS.map((preset) => (
+            <button
+              key={preset.label}
+              className={`difficulty-preset${activePreset?.label === preset.label ? ' selected' : ''}`}
+              onClick={() => applyPreset(preset)}
+              type="button"
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div>
