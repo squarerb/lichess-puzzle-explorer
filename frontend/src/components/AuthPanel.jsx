@@ -1,27 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { loadStats, pullCloudStats, pushCloudStats, setSyncUser, STORAGE_KEY } from '../lib/stats'
 
-export default function AuthPanel({ onStatsSynced }) {
-  const [session, setSession] = useState(null)
+export default function AuthPanel({ session, onStatsSynced }) {
   const [mode, setMode] = useState('signin') // signin | signup
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState('')
   const [loading, setLoading] = useState(false)
+  const syncedForUserId = useRef(null)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      if (data.session) handleSignedIn(data.session.user.id)
-    })
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession)
-      if (newSession) handleSignedIn(newSession.user.id)
-    })
-    return () => listener.subscription.unsubscribe()
+    if (session && syncedForUserId.current !== session.user.id) {
+      syncedForUserId.current = session.user.id
+      handleSignedIn(session.user.id)
+    }
+    if (!session) {
+      syncedForUserId.current = null
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [session])
 
   async function handleSignedIn(userId) {
     setSyncUser(userId)

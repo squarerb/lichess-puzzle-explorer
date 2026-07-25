@@ -125,6 +125,25 @@ button {
   text-transform: uppercase;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.auth-status-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-status-email {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ivory-dim);
+}
+
 .nav-tabs {
   display: flex;
   gap: 4px;

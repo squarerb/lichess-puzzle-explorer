@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { exportStats, importStats, resetStats } from '../lib/stats'
 import AuthPanel from './AuthPanel'
 
-export default function StatsPanel({ stats, setStats }) {
+export default function StatsPanel({ stats, setStats, session }) {
   const fileInputRef = useRef(null)
   const [importError, setImportError] = useState('')
 
@@ -30,7 +30,7 @@ export default function StatsPanel({ stats, setStats }) {
 
   return (
     <div>
-      <AuthPanel onStatsSynced={setStats} />
+      <AuthPanel session={session} onStatsSynced={setStats} />
 
       <div className="stats-grid">
         <div className="stat-card">

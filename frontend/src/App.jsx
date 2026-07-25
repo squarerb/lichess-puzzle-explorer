@@ -4,8 +4,10 @@ import PuzzleList from './components/PuzzleList'
 import PuzzleBoard from './components/PuzzleBoard'
 import StatsPanel from './components/StatsPanel'
 import BackgroundPieces from './components/BackgroundPieces'
+import AuthStatus from './components/AuthStatus'
 import { getAllPuzzles, filterPuzzles, pickRandom } from './lib/puzzleData'
 import { loadStats } from './lib/stats'
+import { useAuthSession } from './lib/useAuthSession'
 import meta from './data/meta.json'
 
 const TABS = ['Browse', 'Solve', 'Stats']
@@ -22,6 +24,7 @@ export default function App() {
   const [activePuzzle, setActivePuzzle] = useState(() => pickRandom(allPuzzles))
   const [stats, setStats] = useState(loadStats)
   const filtered = useMemo(() => filterPuzzles(allPuzzles, filters), [allPuzzles, filters])
+  const { session } = useAuthSession()
 
   function openPuzzle(p) {
     setActivePuzzle(p)
@@ -43,21 +46,24 @@ export default function App() {
           <span className="brand-mark">squarerb</span>
           <span className="brand-tag">Lichess Puzzle Explorer</span>
         </div>
-        <nav className="nav-tabs">
-          {TABS.map((t) => (
-            <button
-              key={t}
-              className={`nav-tab${tab === t ? ' active' : ''}`}
-              onClick={() => {
-                setTab(t)
-                if (t === 'Stats') setStats(loadStats())
-              }}
-              type="button"
-            >
-              {t}
-            </button>
-          ))}
-        </nav>
+        <div className="header-right">
+          <nav className="nav-tabs">
+            {TABS.map((t) => (
+              <button
+                key={t}
+                className={`nav-tab${tab === t ? ' active' : ''}`}
+                onClick={() => {
+                  setTab(t)
+                  if (t === 'Stats') setStats(loadStats())
+                }}
+                type="button"
+              >
+                {t}
+              </button>
+            ))}
+          </nav>
+          <AuthStatus session={session} onSignInClick={() => setTab('Stats')} />
+        </div>
       </header>
 
       <div className="app-body">
@@ -76,10 +82,11 @@ export default function App() {
 
         {tab === 'Stats' && (
           <div style={{ gridColumn: '1 / -1' }}>
-            <StatsPanel stats={stats} setStats={setStats} />
+            <StatsPanel stats={stats} setStats={setStats} session={session} />
           </div>
         )}
       </div>
     </div>
   )
 }
+
