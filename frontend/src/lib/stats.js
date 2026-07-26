@@ -14,6 +14,49 @@ export function setSyncUser(userId) {
   syncUserId = userId
 }
 
+// Tracks which user IDs have already been synced THIS SESSION — a plain
+// module-level Set, not component state, so it survives components
+// unmounting/remounting (e.g. switching tabs) rather than re-running the
+// merge-conflict prompt every single time the sign-in UI happens to remount.
+const syncedUserIds = new Set()
+
+export function clearSyncedUsers() {
+  syncedUserIds.clear()
+}
+
+// Runs once per signed-in session: pulls any existing cloud stats, resolves
+// a conflict with local stats if both have progress, and pushes the result
+// back up. Returns the resolved stats, or null if this user was already
+// synced this session (a no-op, safe to call again without side effects).
+export async function syncStatsOnSignIn(userId) {
+  setSyncUser(userId)
+  if (syncedUserIds.has(userId)) return null
+  syncedUserIds.add(userId)
+
+  const cloud = await pullCloudStats(userId)
+  const local = loadStats()
+  const localHasProgress = local.solved + local.failed > 0
+  const cloudHasProgress = cloud && cloud.solved + cloud.failed > 0
+
+  let finalStats
+  if (cloudHasProgress && localHasProgress) {
+    const useCloud = window.confirm(
+      "You have puzzle stats saved both on this device and in the cloud.\n\n" +
+        "Click OK to use your CLOUD stats (this device's local progress will be replaced).\n" +
+        "Click Cancel to keep this device's LOCAL progress (the cloud copy will be replaced with it)."
+    )
+    finalStats = useCloud ? cloud : local
+  } else if (cloudHasProgress) {
+    finalStats = cloud
+  } else {
+    finalStats = local
+  }
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(finalStats))
+  await pushCloudStats(userId, finalStats)
+  return finalStats
+}
+
 export async function pushCloudStats(userId, stats) {
   const { error } = await supabase
     .from('user_stats')

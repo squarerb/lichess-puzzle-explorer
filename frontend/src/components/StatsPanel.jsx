@@ -116,7 +116,7 @@ export default function StatsPanel({ stats, setStats, session }) {
       </div>
 
       <aside className="stats-sidebar">
-        <AuthPanel session={session} onStatsSynced={setStats} />
+        <AuthPanel session={session} />
         <GlobalStats />
       </aside>
     </div>

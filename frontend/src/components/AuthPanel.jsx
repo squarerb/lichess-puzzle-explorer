@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { loadStats, pullCloudStats, pushCloudStats, setSyncUser, STORAGE_KEY } from '../lib/stats'
 import Turnstile from './Turnstile'
 
-export default function AuthPanel({ session, onStatsSynced }) {
+export default function AuthPanel({ session }) {
   const [mode, setMode] = useState('signin') // signin | signup
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -11,50 +10,6 @@ export default function AuthPanel({ session, onStatsSynced }) {
   const [loading, setLoading] = useState(false)
   const [captchaToken, setCaptchaToken] = useState(null)
   const [turnstileResetKey, setTurnstileResetKey] = useState(0)
-  const syncedForUserId = useRef(null)
-
-  useEffect(() => {
-    if (session && syncedForUserId.current !== session.user.id) {
-      syncedForUserId.current = session.user.id
-      handleSignedIn(session.user.id)
-    }
-    if (!session) {
-      syncedForUserId.current = null
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session])
-
-  async function handleSignedIn(userId) {
-    setSyncUser(userId)
-    setStatus('Syncing…')
-    try {
-      const cloud = await pullCloudStats(userId)
-      const local = loadStats()
-      const localHasProgress = local.solved + local.failed > 0
-      const cloudHasProgress = cloud && cloud.solved + cloud.failed > 0
-
-      let finalStats
-      if (cloudHasProgress && localHasProgress) {
-        const useCloud = window.confirm(
-          "You have puzzle stats saved both on this device and in the cloud.\n\n" +
-            'Click OK to use your CLOUD stats (this device\'s local progress will be replaced).\n' +
-            "Click Cancel to keep this device's LOCAL progress (the cloud copy will be replaced with it)."
-        )
-        finalStats = useCloud ? cloud : local
-      } else if (cloudHasProgress) {
-        finalStats = cloud
-      } else {
-        finalStats = local
-      }
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(finalStats))
-      await pushCloudStats(userId, finalStats)
-      onStatsSynced?.(finalStats)
-      setStatus('Synced.')
-    } catch {
-      setStatus('Signed in, but could not reach the cloud right now — your local stats are unaffected.')
-    }
-  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -88,7 +43,6 @@ export default function AuthPanel({ session, onStatsSynced }) {
 
   async function handleSignOut() {
     await supabase.auth.signOut()
-    setSyncUser(null)
     setStatus('')
   }
 

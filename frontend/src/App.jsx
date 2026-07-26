@@ -8,7 +8,7 @@ import AuthStatus from './components/AuthStatus'
 import AuthPanel from './components/AuthPanel'
 import Modal from './components/Modal'
 import { getAllPuzzles, filterPuzzles, pickRandom } from './lib/puzzleData'
-import { loadStats } from './lib/stats'
+import { loadStats, syncStatsOnSignIn, clearSyncedUsers, setSyncUser } from './lib/stats'
 import { useAuthSession } from './lib/useAuthSession'
 import meta from './data/meta.json'
 
@@ -32,6 +32,21 @@ export default function App() {
   // Close the sign-in popup automatically once sign-in actually succeeds.
   useEffect(() => {
     if (session) setSignInOpen(false)
+  }, [session])
+
+  // Runs the cloud sync exactly once per signed-in session, from this
+  // top-level component — which stays mounted the whole time, unlike the
+  // sign-in UI itself (which unmounts/remounts as you switch tabs, and
+  // would otherwise re-trigger the merge-conflict prompt every time).
+  useEffect(() => {
+    if (!session) {
+      clearSyncedUsers()
+      setSyncUser(null)
+      return
+    }
+    syncStatsOnSignIn(session.user.id).then((finalStats) => {
+      if (finalStats) setStats(finalStats)
+    })
   }, [session])
 
   function openPuzzle(p) {
@@ -75,7 +90,7 @@ export default function App() {
       </header>
 
       <Modal open={signInOpen} onClose={() => setSignInOpen(false)} title="Sign in">
-        <AuthPanel session={session} onStatsSynced={setStats} />
+        <AuthPanel session={session} />
       </Modal>
 
       <div className="app-body">
