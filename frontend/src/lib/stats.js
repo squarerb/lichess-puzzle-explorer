@@ -25,9 +25,10 @@ export function clearSyncedUsers() {
 }
 
 // Runs once per signed-in session: pulls any existing cloud stats, resolves
-// a conflict with local stats if both have progress, and pushes the result
-// back up. Returns the resolved stats, or null if this user was already
-// synced this session (a no-op, safe to call again without side effects).
+// a conflict with local stats ONLY if they actually disagree, and pushes the
+// result back up. Returns the resolved stats, or null if this user was
+// already synced this session (a no-op, safe to call again without side
+// effects) or if local/cloud already matched (nothing to resolve).
 export async function syncStatsOnSignIn(userId) {
   setSyncUser(userId)
   if (syncedUserIds.has(userId)) return null
@@ -38,8 +39,14 @@ export async function syncStatsOnSignIn(userId) {
   const localHasProgress = local.solved + local.failed > 0
   const cloudHasProgress = cloud && cloud.solved + cloud.failed > 0
 
+  // A real conflict only exists if both sides have progress AND they
+  // actually disagree on the numbers — not just "both happen to have some
+  // progress," which will always be true after the first successful sync,
+  // since local and cloud end up holding identical data at that point.
+  const numbersMatch = cloudHasProgress && cloud.solved === local.solved && cloud.failed === local.failed
+
   let finalStats
-  if (cloudHasProgress && localHasProgress) {
+  if (cloudHasProgress && localHasProgress && !numbersMatch) {
     const useCloud = window.confirm(
       "You have puzzle stats saved both on this device and in the cloud.\n\n" +
         "Click OK to use your CLOUD stats (this device's local progress will be replaced).\n" +

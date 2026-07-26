@@ -27,8 +27,10 @@ export default function GlobalStats() {
           <div className="stat-label">Puzzles solved</div>
         </div>
         <div>
-          <div className="stat-value">{Number(stats.total_failed).toLocaleString()}</div>
-          <div className="stat-label">Attempts missed</div>
+          <div className="stat-value">
+            {(Number(stats.total_solved) + Number(stats.total_failed)).toLocaleString()}
+          </div>
+          <div className="stat-label">Total attempts</div>
         </div>
       </div>
     </div>
