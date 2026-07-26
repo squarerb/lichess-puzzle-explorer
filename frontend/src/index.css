@@ -1,17 +1,17 @@
 :root {
-  --bg: #1c1815;
-  --surface: #262019;
-  --surface-2: #2f281f;
-  --surface-3: #3a3227;
-  --ivory: #ede6d6;
-  --ivory-dim: #b8ae9c;
-  --brass: #b08d57;
-  --brass-bright: #cba86b;
-  --felt: #4c7a5b;
-  --felt-bright: #6ea281;
-  --ember: #b3402e;
-  --ember-bright: #d15a46;
-  --border: #3d362b;
+  --bg: #241d17;
+  --surface: #322a20;
+  --surface-2: #3d3327;
+  --surface-3: #4a3e2e;
+  --ivory: #f2ece0;
+  --ivory-dim: #b3a693;
+  --brass: #c9975a;
+  --brass-bright: #ddb377;
+  --felt: #5a8d6c;
+  --felt-bright: #7cb392;
+  --ember: #c04f3a;
+  --ember-bright: #e06952;
+  --border: #5c4d3a;
 
   --font-display: 'Fraunces', Georgia, serif;
   --font-body: 'Inter', system-ui, sans-serif;
@@ -187,6 +187,17 @@ button {
 @media (max-width: 860px) {
   .app-body {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-body {
+    padding: 16px 14px 32px;
+    gap: 16px;
+  }
+
+  .app-header {
+    padding: 16px 14px;
   }
 }
 
