@@ -3,15 +3,15 @@ import { useEffect, useRef } from 'react'
 // Safe to have in frontend code — this is the public site key, meant to be
 // embedded on the page. The secret key stays in Supabase's dashboard only.
 //
-// Cloudflare's real Turnstile widgets only work on domains you've explicitly
-// registered for that widget. Rather than fighting localhost/domain config
-// during development, we use Cloudflare's own published test key here —
-// it always passes and works on ANY domain, specifically meant for local
-// dev. `import.meta.env.DEV` is true only during `npm run dev`, so the
-// production build (and the deployed site) always uses the real key.
-const TURNSTILE_SITE_KEY = import.meta.env.DEV
-  ? '1x00000000000000000000AA' // Cloudflare's "always passes" test key
-  : '0x4AAAAAAD9lK_sdLALImh8f'
+// Note: this must always be the REAL site key, matching whatever secret key
+// is configured in Supabase's Attack Protection settings. Swapping in
+// Cloudflare's published test site key for local dev doesn't work here,
+// because Supabase validates tokens against one fixed secret key — a token
+// from a different site key (even Cloudflare's own test one) won't match it
+// and gets rejected with "invalid-input-response". Instead, make sure
+// `localhost` is added as an allowed domain on this same real widget in the
+// Cloudflare Turnstile dashboard.
+const TURNSTILE_SITE_KEY = '0x4AAAAAAD9lK_sdLALImh8f'
 
 let scriptLoadingPromise = null
 function loadTurnstileScript() {
