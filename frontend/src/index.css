@@ -20,6 +20,24 @@
   color-scheme: dark;
 }
 
+[data-theme='light'] {
+  --bg: #ede1c9;
+  --surface: #e2d3ae;
+  --surface-2: #d6c194;
+  --surface-3: #c7ac7a;
+  --ivory: #2b2118;
+  --ivory-dim: #6b5a45;
+  --brass: #8f6a2e;
+  --brass-bright: #6b4f1f;
+  --felt: #3f6b4e;
+  --felt-bright: #2f5a3d;
+  --ember: #a63f2d;
+  --ember-bright: #8a2f20;
+  --border: #b89b6c;
+
+  color-scheme: light;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -142,6 +160,25 @@ button {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--ivory-dim);
+}
+
+.theme-toggle {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--ivory);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s;
+}
+
+.theme-toggle:hover {
+  border-color: var(--brass);
 }
 
 .nav-tabs {

@@ -7,15 +7,18 @@ import BackgroundPieces from './components/BackgroundPieces'
 import AuthStatus from './components/AuthStatus'
 import AuthPanel from './components/AuthPanel'
 import Modal from './components/Modal'
+import ThemeToggle from './components/ThemeToggle'
 import { getAllPuzzles, filterPuzzles, pickRandom } from './lib/puzzleData'
 import { loadStats, syncStatsOnSignIn, clearSyncedUsers, setSyncUser } from './lib/stats'
 import { useAuthSession } from './lib/useAuthSession'
+import { getInitialTheme, applyTheme } from './lib/theme'
 import meta from './data/meta.json'
 
 const TABS = ['Browse', 'Solve', 'Stats']
 
 export default function App() {
   const [tab, setTab] = useState('Browse')
+  const [theme, setTheme] = useState(getInitialTheme)
   const [filters, setFilters] = useState({
     themes: [],
     minRating: meta.ratingRange[0],
@@ -28,6 +31,10 @@ export default function App() {
   const filtered = useMemo(() => filterPuzzles(allPuzzles, filters), [allPuzzles, filters])
   const { session } = useAuthSession()
   const [signInOpen, setSignInOpen] = useState(false)
+
+  useEffect(() => {
+    applyTheme(theme)
+  }, [theme])
 
   // Close the sign-in popup automatically once sign-in actually succeeds.
   useEffect(() => {
@@ -86,6 +93,7 @@ export default function App() {
             ))}
           </nav>
           <AuthStatus session={session} onSignInClick={() => setSignInOpen(true)} />
+          <ThemeToggle theme={theme} onToggle={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))} />
         </div>
       </header>
 
