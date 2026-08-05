@@ -110,8 +110,9 @@ export default function StatsPanel({ stats, setStats, session }) {
         {importError && <div style={{ color: 'var(--ember-bright)', marginTop: 8, fontSize: '0.85rem' }}>{importError}</div>}
 
         <p style={{ color: 'var(--ivory-dim)', fontSize: '0.8rem', marginTop: 20, maxWidth: 480 }}>
-          Stats are stored in this browser only (no account, no server). Use export/import to move them to another
-          device or back them up.
+          {session
+            ? "Your stats sync automatically to your account. Export/Import here are just for a manual backup, if you'd like one."
+            : 'Stats are stored in this browser only (no account, no server). Use export/import to move them to another device or back them up.'}
         </p>
       </div>
 
