@@ -41,6 +41,7 @@ export default function PuzzleBoard({ puzzle, onNext, onSelectPuzzle }) {
   const [hintShownThisMove, setHintShownThisMove] = useState(false)
   const [hintUsedThisPuzzle, setHintUsedThisPuzzle] = useState(false)
   const [moveHistory, setMoveHistory] = useState([])
+  const [selectedSquare, setSelectedSquare] = useState(null)
 
   useEffect(() => {
     if (!puzzle) return
@@ -55,6 +56,7 @@ export default function PuzzleBoard({ puzzle, onNext, onSelectPuzzle }) {
     setHintShownThisMove(false)
     setHintUsedThisPuzzle(false)
     setMoveHistory(game.history())
+    setSelectedSquare(null)
     setOrientation(game.turn() === 'w' ? 'white' : 'black')
   }, [puzzle])
 
@@ -89,7 +91,11 @@ export default function PuzzleBoard({ puzzle, onNext, onSelectPuzzle }) {
     }
   }
 
-  function onPieceDrop(sourceSquare, targetSquare) {
+  // Shared by both drag-and-drop and click-to-move — attempts the move,
+  // checks it against the puzzle's solution, and advances/fails the puzzle
+  // accordingly. Returns true if a move was accepted as a legal chess move
+  // (right OR wrong for the puzzle), false if it was illegal and rejected.
+  function attemptMove(sourceSquare, targetSquare) {
     if (status !== 'thinking' || !gameRef.current) return false
     const game = gameRef.current
     const expected = puzzle.moves[moveIndex]
@@ -135,6 +141,46 @@ export default function PuzzleBoard({ puzzle, onNext, onSelectPuzzle }) {
     return true
   }
 
+  function onPieceDrop(sourceSquare, targetSquare) {
+    const accepted = attemptMove(sourceSquare, targetSquare)
+    if (accepted) setSelectedSquare(null)
+    return accepted
+  }
+
+  function pieceColorAt(square) {
+    const piece = gameRef.current?.get(square)
+    return piece ? piece.color : null
+  }
+
+  // Click-to-move: click a piece to select it (highlighted), then click a
+  // destination square to move there. Click the same square again to
+  // deselect, or click a different one of your own pieces to switch
+  // selection instead of attempting an illegal move.
+  function onSquareClick(square) {
+    if (status !== 'thinking' || !gameRef.current) return
+    const turnColor = gameRef.current.turn()
+
+    if (!selectedSquare) {
+      if (pieceColorAt(square) === turnColor) {
+        setSelectedSquare(square)
+      }
+      return
+    }
+
+    if (square === selectedSquare) {
+      setSelectedSquare(null)
+      return
+    }
+
+    if (pieceColorAt(square) === turnColor) {
+      setSelectedSquare(square)
+      return
+    }
+
+    attemptMove(selectedSquare, square)
+    setSelectedSquare(null)
+  }
+
   // Reveals only the source square of the solution move — enough to nudge
   // you toward the right idea without just handing over the answer.
   function showHint() {
@@ -155,6 +201,7 @@ export default function PuzzleBoard({ puzzle, onNext, onSelectPuzzle }) {
     setFen(game.fen())
     setMoveHistory(game.history())
     setMoveIndex(puzzle.moves.length)
+    setSelectedSquare(null)
     finishFailed()
   }
 
@@ -170,6 +217,7 @@ export default function PuzzleBoard({ puzzle, onNext, onSelectPuzzle }) {
     setHintSquare(null)
     setHintShownThisMove(false)
     setHintUsedThisPuzzle(false)
+    setSelectedSquare(null)
   }
 
   if (!puzzle) {
@@ -188,9 +236,17 @@ export default function PuzzleBoard({ puzzle, onNext, onSelectPuzzle }) {
         ? 'Not the move. Try again or see the solution.'
         : 'Find the best move for the side to move.'
 
-  const squareStyles = hintSquare
-    ? { [hintSquare]: { boxShadow: 'inset 0 0 0 4px var(--brass-bright)' } }
-    : undefined
+  const squareStyles = {}
+  if (hintSquare) {
+    squareStyles[hintSquare] = { boxShadow: 'inset 0 0 0 4px var(--brass-bright)' }
+  }
+  if (selectedSquare) {
+    squareStyles[selectedSquare] = {
+      ...(squareStyles[selectedSquare] || {}),
+      backgroundColor: 'rgba(90, 141, 108, 0.45)',
+    }
+  }
+  const finalSquareStyles = Object.keys(squareStyles).length > 0 ? squareStyles : undefined
 
   return (
     <div className="solve-layout">
@@ -198,12 +254,13 @@ export default function PuzzleBoard({ puzzle, onNext, onSelectPuzzle }) {
         <Chessboard
           position={fen}
           onPieceDrop={onPieceDrop}
+          onSquareClick={onSquareClick}
           boardOrientation={orientation}
           arePiecesDraggable={status === 'thinking'}
           customDarkSquareStyle={{ backgroundColor: '#7a6a52' }}
           customLightSquareStyle={{ backgroundColor: '#ede6d6' }}
           customBoardStyle={{ borderRadius: '6px' }}
-          customSquareStyles={squareStyles}
+          customSquareStyles={finalSquareStyles}
         />
       </div>
 
